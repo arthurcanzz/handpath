@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="meta_title">
+      Handpath — Aprenda poker do zero. Treine como um profissional.
+    </title>
+    <meta
+      name="description"
+      id="metaDescription"
+      content="Handpath combina um curso estruturado de poker com um simulador de multi-table contra bots por nível."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <div class="scroll-progress">
+      <div class="scroll-progress-bar" id="scrollProgressBar"></div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-inner">
+        <div class="logo">Hand<span>Path</span></div>
+        <div class="nav-links">
+          <a href="#curso" data-i18n="nav_curso">O Curso</a>
+          <a href="#trilha" data-i18n="nav_trilha">Sua Trilha</a>
+          <a href="#quiz" data-i18n="nav_quiz">Quiz</a>
+          <a href="#planos" data-i18n="nav_planos">Planos</a>
+          <a href="#faq" data-i18n="nav_faq">FAQ</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div class="lang-switch" id="langSwitch">
+            <button
+              class="lang-current"
+              id="langCurrentBtn"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              <span class="flag-icon" id="langCurrentFlag"></span>
+              <span class="lang-code-label" id="langCurrentLabel">PT</span>
+              <span class="lang-chevron">▾</span>
+            </button>
+            <div class="lang-menu" id="langMenu"></div>
+          </div>
+          <button class="nav-cta magnetic" id="navCta" data-i18n="nav_cta">
+            Entrar na lista
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="hero-floaters" id="heroFloaters"></div>
+        <div class="hero-content">
+          <div class="eyebrow center hero-eyebrow" data-i18n="hero_eyebrow">
+            Em breve · Lista de fundadores aberta
+          </div>
+          <h1 data-i18n="hero_h1">
+            Do primeiro flop à mesa cheia de <em>bluffs</em>.
+          </h1>
+          <p class="hero-sub" data-i18n="hero_sub">
+            Handpath é o único lugar que ensina poker do zero
+            <strong>e</strong> treina a habilidade que nenhuma outra ferramenta
+            treina.
+          </p>
+
+          <div class="hero-form-wrap">
+            <form class="waitlist-form" id="heroForm" novalidate>
+              <input
+                type="email"
+                name="email"
+                data-i18n-placeholder="form_email_placeholder"
+                placeholder="seu@email.com"
+                required
+                aria-label="Email"
+              />
+              <button
+                type="submit"
+                class="magnetic"
+                data-i18n="form_submit_hero"
+              >
+                Entrar na lista
+              </button>
+            </form>
+            <div class="form-msg" id="heroFormMsg"></div>
+          </div>
+
+          <div class="hero-trust">
+            <span data-i18n="trust_1">100% treino, sem apostas reais</span>
+            <span data-i18n="trust_2">Do iniciante ao avançado</span>
+            <span data-i18n="trust_3">Preço travado para fundadores</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="problem">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="eyebrow center" data-i18n="problem_eyebrow">
+              O que falta hoje
+            </div>
+            <h2 data-i18n="problem_h2">
+              Ferramentas de estudo. Ferramentas de organizar janela. Nada que
+              treine as duas coisas juntas.
+            </h2>
+          </div>
+          <div class="problem-grid reveal">
+            <div class="problem-cell">
+              <div class="tag" data-i18n="problem_cell1_tag">
+                Cursos e solvers
+              </div>
+              <p data-i18n="problem_cell1_p">
+                Ensinam a teoria, mas não colocam você sob pressão de decidir
+                rápido em várias mesas.
+              </p>
+            </div>
+            <div class="problem-cell">
+              <div class="tag" data-i18n="problem_cell2_tag">
+                Gerenciadores de multi-table
+              </div>
+              <p data-i18n="problem_cell2_p">
+                Organizam as janelas na tela — mas não ensinam a jogar bem
+                dentro delas.
+              </p>
+            </div>
+            <div class="problem-cell highlight">
+              <div class="tag" data-i18n="problem_cell3_tag">Handpath</div>
+              <p data-i18n="problem_cell3_p">
+                Currículo completo + simulador que treina exatamente o volume e
+                a pressão de jogar várias mesas de verdade.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pillars" id="curso">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="eyebrow center" data-i18n="pillars_eyebrow">
+              Como funciona
+            </div>
+            <h2 data-i18n="pillars_h2">Três peças, um único caminho</h2>
+            <p data-i18n="pillars_p">
+              Cada parte do Handpath existe para resolver uma lacuna específica
+              de quem quer evoluir de verdade no poker.
+            </p>
+          </div>
+          <div class="pillar-grid">
+            <div class="pillar-card reveal" data-tilt>
+              <div class="pillar-num">01</div>
+              <h3 data-i18n="pillar1_title">
+                Curso completo, do zero ao avançado
+              </h3>
+              <p data-i18n="pillar1_p">
+                Uma trilha estruturada que começa no ranking de mãos e termina
+                em leitura de adversário.
+              </p>
+            </div>
+            <div class="pillar-card reveal" data-tilt>
+              <div class="pillar-num">02</div>
+              <h3 data-i18n="pillar2_title">
+                Simulador multi-table contra bots reais
+              </h3>
+              <p data-i18n="pillar2_p">
+                Jogue 1, 4, 12 ou 24 mesas ao mesmo tempo contra arquétipos como
+                Nit, LAG, Calling Station e Maniac.
+              </p>
+            </div>
+            <div class="pillar-card reveal" data-tilt>
+              <div class="pillar-num">03</div>
+              <h3 data-i18n="pillar3_title">
+                GUI de decisão, só dentro do treino
+              </h3>
+              <p data-i18n="pillar3_p">
+                Recomendações por posição, profundidade de stack e formato de
+                jogo.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="path-section" id="trilha">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="eyebrow center" data-i18n="trilha_eyebrow">
+              Sua trilha
+            </div>
+            <h2 data-i18n="trilha_h2">
+              Um curso para cada momento da sua evolução
+            </h2>
+          </div>
+          <div class="path-svg-wrap reveal">
+            <svg
+              viewBox="0 0 1000 40"
+              preserveAspectRatio="none"
+              width="100%"
+              height="40"
+            >
+              <line
+                id="pathLine"
+                x1="40"
+                y1="20"
+                x2="960"
+                y2="20"
+                stroke="rgba(242,233,215,.15)"
+                stroke-width="2"
+              />
+              <line
+                id="pathLineFill"
+                x1="40"
+                y1="20"
+                x2="960"
+                y2="20"
+                stroke="url(#pathGrad)"
+                stroke-width="2"
+                stroke-dasharray="920"
+                stroke-dashoffset="920"
+              />
+              <defs>
+                <linearGradient id="pathGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#c9a24b" />
+                  <stop offset="100%" stop-color="#3ecf8e" />
+                </linearGradient>
+              </defs>
+              <circle cx="40" cy="20" r="6" fill="#3ecf8e" />
+              <circle
+                cx="500"
+                cy="20"
+                r="6"
+                fill="#123a28"
+                stroke="#c9a24b"
+                stroke-width="2"
+              />
+              <circle
+                cx="960"
+                cy="20"
+                r="6"
+                fill="#123a28"
+                stroke="#c9a24b"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="path-track reveal">
+            <div class="path-step">
+              <div class="level-tag" data-i18n="path1_tag">Nível 01</div>
+              <h4 data-i18n="path1_title">Iniciante</h4>
+              <p data-i18n="path1_p">
+                Fundamentos: ranking de mãos, odds, posição, primeiras mesas
+                contra bots previsíveis.
+              </p>
+            </div>
+            <div class="path-step active">
+              <div class="level-tag" data-i18n="path2_tag">Nível 02</div>
+              <h4 data-i18n="path2_title">Intermediário</h4>
+              <p data-i18n="path2_p">
+                Ranges dinâmicas, leitura de arquétipo de oponente, primeiras
+                mesas simultâneas.
+              </p>
+            </div>
+            <div class="path-step">
+              <div class="level-tag" data-i18n="path3_tag">Nível 03</div>
+              <h4 data-i18n="path3_title">Avançado</h4>
+              <p data-i18n="path3_p">
+                6 a 24 mesas simultâneas, população de bots variada, GUI só na
+                análise pós-sessão.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="quiz-section" id="quiz">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="eyebrow center" data-i18n="quiz_eyebrow">
+              Teste seu nível
+            </div>
+            <h2 data-i18n="quiz_h2">Onde você está agora?</h2>
+            <p data-i18n="quiz_p">
+              8 situações reais de mesa. No final, mostramos seu nível e o plano
+              ideal para começar.
+            </p>
+          </div>
+
+          <div class="quiz-card reveal">
+            <div class="quiz-intro" id="quizIntro">
+              <h3 data-i18n="quiz_intro_h3">Pronto pra descobrir?</h3>
+              <p data-i18n="quiz_intro_p">
+                São 8 perguntas rápidas, baseadas em spots reais de jogo.
+              </p>
+              <button id="quizStartBtn" data-i18n="quiz_start_btn">
+                Começar quiz
+              </button>
+            </div>
+
+            <div id="quizPlaying" style="display: none">
+              <div class="quiz-progress" id="quizProgress"></div>
+              <div class="quiz-body active" id="quizBody">
+                <div class="quiz-qnum" id="quizQnum">Pergunta 1 de 8</div>
+                <div class="quiz-question" id="quizQuestion"></div>
+                <div class="quiz-scene" id="quizScene"></div>
+                <div class="quiz-options" id="quizOptions"></div>
+              </div>
+            </div>
+
+            <div class="quiz-loading" id="quizLoading">
+              <div class="shuffle-icon">♠</div>
+              <p id="quizLoadingText" data-i18n="quiz_loading_text">
+                Calculando seu nível...
+              </p>
+            </div>
+
+            <div class="quiz-result" id="quizResult">
+              <div
+                class="result-badge"
+                id="resultBadge"
+                data-i18n="result_badge"
+              >
+                Seu nível
+              </div>
+              <h3 id="resultLevel">Intermediário</h3>
+              <div class="result-meter">
+                <div class="result-meter-fill" id="resultMeterFill"></div>
+              </div>
+              <div class="result-meter-labels">
+                <span data-i18n="level_beginner">Iniciante</span>
+                <span data-i18n="level_intermediate">Intermediário</span>
+                <span data-i18n="level_advanced">Avançado</span>
+              </div>
+              <div class="result-plan">
+                <div class="rp-tag" data-i18n="result_plan_tag">
+                  Plano recomendado
+                </div>
+                <div class="rp-name" id="resultPlanName">Pro</div>
+                <div class="rp-why" id="resultPlanWhy"></div>
+              </div>
+              <div class="quiz-result-actions">
+                <button
+                  class="btn-primary"
+                  id="quizGoPlanBtn"
+                  data-i18n="quiz_goplan_btn"
+                >
+                  Ver plano recomendado
+                </button>
+                <button
+                  class="btn-ghost"
+                  id="quizRetryBtn"
+                  data-i18n="quiz_retry_btn"
+                >
+                  Refazer quiz
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="plans-section" id="planos">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="eyebrow center" data-i18n="plans_eyebrow">Planos</div>
+            <h2 data-i18n="plans_h2">Comece de graça. Evolua no seu ritmo.</h2>
+          </div>
+
+          <div class="plans-toggle reveal" id="plansToggle">
+            <span data-i18n="toggle_monthly">Mensal</span>
+            <div class="switch" id="plansSwitch"><div class="knob"></div></div>
+            <span data-i18n="toggle_annual">Anual</span>
+            <span class="save-tag" data-i18n="toggle_save">economize ~25%</span>
+          </div>
+
+          <div class="plans-grid reveal">
+            <div class="plan-card" data-plan="free">
+              <div class="pc-tag" data-i18n="plan_free_tag">
+                Comece de graça
+              </div>
+              <div class="pc-name">Free</div>
+              <div class="pc-price" data-monthly="0" data-annual="0">
+                US$ 0<span data-i18n="price_suffix_monthly">/mês</span>
+              </div>
+              <div class="pc-desc" data-i18n="plan_free_desc">
+                Pra quem nunca jogou e quer entender o básico antes de tudo.
+              </div>
+              <ul>
+                <li data-i18n="plan_free_li1">Ranking de mãos e odds</li>
+                <li data-i18n="plan_free_li2">1 mesa vs. bot iniciante</li>
+                <li data-i18n="plan_free_li3">Sessão limitada por dia</li>
+              </ul>
+              <button class="pc-cta" data-i18n="plan_free_cta">
+                Começar grátis
+              </button>
+            </div>
+
+            <div class="plan-card" data-plan="starter">
+              <div class="pc-tag">Starter</div>
+              <div class="pc-name">Starter</div>
+              <div class="pc-price" data-monthly="15" data-annual="9">
+                US$ 15<span data-i18n="price_suffix_monthly">/mês</span>
+              </div>
+              <div class="pc-desc" data-i18n="plan_starter_desc">
+                Bots iniciante + intermediário, até 4 mesas ao mesmo tempo.
+              </div>
+              <ul>
+                <li data-i18n="plan_starter_li1">
+                  Curso completo (nível 1 e 2)
+                </li>
+                <li data-i18n="plan_starter_li2">Até 4 mesas simultâneas</li>
+                <li data-i18n="plan_starter_li3">GUI básico sempre visível</li>
+              </ul>
+              <button class="pc-cta" data-i18n="plan_starter_cta">
+                Escolher Starter
+              </button>
+            </div>
+
+            <div class="plan-card featured" data-plan="pro">
+              <div class="pc-tag" data-i18n="plan_pro_tag">Mais popular</div>
+              <div class="pc-name">Pro</div>
+              <div class="pc-price" data-monthly="29" data-annual="19">
+                US$ 29<span data-i18n="price_suffix_monthly">/mês</span>
+              </div>
+              <div class="pc-desc" data-i18n="plan_pro_desc">
+                Todos os arquétipos de oponente, até 12 mesas, analytics
+                completo.
+              </div>
+              <ul>
+                <li data-i18n="plan_pro_li1">
+                  Curso completo (todos os níveis)
+                </li>
+                <li data-i18n="plan_pro_li2">Até 12 mesas simultâneas</li>
+                <li data-i18n="plan_pro_li3">
+                  GUI completo (posição/stack/formato)
+                </li>
+                <li data-i18n="plan_pro_li4">Analytics de sessão</li>
+              </ul>
+              <button class="pc-cta" data-i18n="plan_pro_cta">
+                Escolher Pro
+              </button>
+            </div>
+
+            <div class="plan-card" data-plan="elite">
+              <div class="pc-tag" data-i18n="plan_elite_tag">Elite / Coach</div>
+              <div class="pc-name">Elite</div>
+              <div class="pc-price" data-monthly="59" data-annual="49">
+                US$ 59<span data-i18n="price_suffix_monthly">/mês</span>
+              </div>
+              <div class="pc-desc" data-i18n="plan_elite_desc">
+                Simulação extrema e ferramentas para quem leva o jogo a sério.
+              </div>
+              <ul>
+                <li data-i18n="plan_elite_li1">Até 24 mesas simultâneas</li>
+                <li data-i18n="plan_elite_li2">Pool de bots customizável</li>
+                <li data-i18n="plan_elite_li3">Relatórios exportáveis</li>
+                <li data-i18n="plan_elite_li4">
+                  Acesso antecipado a novidades
+                </li>
+              </ul>
+              <button class="pc-cta" data-i18n="plan_elite_cta">
+                Escolher Elite
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="founders">
+        <div class="wrap">
+          <div class="founders-badge reveal" data-i18n="founders_badge">
+            Vagas limitadas
+          </div>
+          <h2 class="reveal" data-i18n="founders_h2">
+            As primeiras 500 vagas travam o preço para sempre.
+          </h2>
+          <p class="reveal" data-i18n="founders_p">
+            Quem entrar na lista de fundadores garante o valor de lançamento por
+            toda a assinatura.
+          </p>
+          <form class="waitlist-form reveal" id="foundersForm" novalidate>
+            <input
+              type="email"
+              name="email"
+              data-i18n-placeholder="form_email_placeholder"
+              placeholder="seu@email.com"
+              required
+              aria-label="Email"
+            />
+            <button type="submit" class="magnetic" data-i18n="founders_submit">
+              Garantir minha vaga
+            </button>
+          </form>
+          <div class="form-msg" id="foundersFormMsg"></div>
+          <div class="selected-plan-note" id="selectedPlanNote"></div>
+        </div>
+      </section>
+
+      <section class="faq" id="faq">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="eyebrow center" data-i18n="faq_eyebrow">
+              Perguntas frequentes
+            </div>
+            <h2 data-i18n="faq_h2">Antes de você entrar na lista</h2>
+          </div>
+          <div class="faq-list reveal">
+            <div class="faq-item">
+              <div class="faq-q">
+                <span data-i18n="faq1_q">Isso envolve dinheiro real?</span
+                ><span class="plus">+</span>
+              </div>
+              <div class="faq-a">
+                <p data-i18n="faq1_a">Não. Hoje o Handpath é 100% treino.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">
+                <span data-i18n="faq2_q"
+                  >Preciso já saber jogar para começar?</span
+                ><span class="plus">+</span>
+              </div>
+              <div class="faq-a">
+                <p data-i18n="faq2_a">Não. O curso começa do absoluto zero.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">
+                <span data-i18n="faq3_q"
+                  >Funciona para cash game e torneio?</span
+                ><span class="plus">+</span>
+              </div>
+              <div class="faq-a">
+                <p data-i18n="faq3_a">Lançamos com NLHE cash game 6-max.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">
+                <span data-i18n="faq4_q">Quando o Handpath lança?</span
+                ><span class="plus">+</span>
+              </div>
+              <div class="faq-a">
+                <p data-i18n="faq4_a">
+                  Estamos abrindo a lista de fundadores agora.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-inner">
+        <div>
+          <div class="logo">hand<span>path</span></div>
+          <p
+            class="footer-note"
+            style="margin-top: 14px"
+            data-i18n="footer_note"
+          >
+            Plataforma educacional de poker.
+          </p>
+        </div>
+        <div class="footer-meta">
+          <span>© HANDPATH</span>
+          <span data-i18n="footer_tagline">POKER TRAINING PLATFORM</span>
+          <span>SP · 2026</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/ScrollTrigger.min.js"></script>
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
+    <script>
+      setTimeout(function () {
+        if (!document.documentElement.hasAttribute("data-hp-loaded")) {
+          document.documentElement.classList.add("hp-fallback");
+        }
+      }, 3000);
+    </script>
+  </body>
+</html>

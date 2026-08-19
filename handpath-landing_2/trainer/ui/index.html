@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Handpath Trainer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <section class="hp-lobby" id="authScreen">
+    <div class="hp-lobby-card hp-auth-card">
+      <div class="hp-logo">Hand<span>path</span></div>
+      <h1>Entrar</h1>
+      <p class="hp-lobby-sub">Sua conta guarda o saldo de fichas entre sessões.</p>
+
+      <form class="hp-auth-form" id="authForm">
+        <label class="hp-field">
+          <span>E-mail</span>
+          <input type="email" id="authEmail" required autocomplete="email" />
+        </label>
+        <label class="hp-field">
+          <span>Senha</span>
+          <input type="password" id="authPassword" autocomplete="current-password" minlength="6" />
+        </label>
+
+        <div class="hp-auth-actions">
+          <button type="submit" class="hp-btn hp-btn--raise" id="btnSignIn">Entrar</button>
+          <button type="button" class="hp-btn hp-btn--ghost" id="btnSignUp">Criar conta</button>
+        </div>
+      </form>
+
+      <div class="hp-auth-divider">ou</div>
+
+      <button type="button" class="hp-btn hp-btn--ghost hp-btn--google" id="btnGoogleSignIn">
+        <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Entrar com Google
+      </button>
+
+      <p class="hp-auth-status" id="authStatus"></p>
+    </div>
+  </section>
+
+  <div class="hp-bankroll-widget" id="bankrollWidget" hidden>
+    <button type="button" class="hp-bankroll-btn" id="btnBankrollToggle">
+      Suas fichas: <strong id="bankrollWidgetAmount">0</strong>
+    </button>
+    <div class="hp-bankroll-panel" id="bankrollPanel" hidden>
+      <button type="button" class="hp-btn hp-btn--raise" id="btnClaimRefill">Resgatar fichas grátis</button>
+      <p class="hp-auth-status" id="refillStatus"></p>
+    </div>
+  </div>
+
+  <section class="hp-lobby" id="buyinScreen" hidden>
+    <div class="hp-lobby-card">
+      <div class="hp-logo">Hand<span>path</span></div>
+      <h1>Escolha a mesa</h1>
+      <p class="hp-lobby-sub">A stake decide o tamanho das blinds, o buy-in e o nível dos bots dessa mesa.</p>
+
+      <div class="hp-level-options" id="stakeOptions"></div>
+
+      <div class="hp-buyin-amount" id="buyinAmountBlock" hidden>
+        <label for="buyinSlider">Buy-in</label>
+        <input type="range" id="buyinSlider" />
+        <output id="buyinAmountOut">0</output>
+        <button type="button" class="hp-btn hp-btn--raise" id="btnContinueToLevel">Continuar</button>
+      </div>
+
+      <p class="hp-auth-status" id="buyinStatus"></p>
+
+      <button type="button" class="hp-btn hp-btn--ghost" id="btnSignOut">Sair da conta</button>
+    </div>
+  </section>
+
+  <section class="hp-lobby" id="lobbyScreen" hidden>
+    <div class="hp-lobby-card">
+      <div class="hp-logo">Hand<span>path</span></div>
+      <h1>Escolha seu nível</h1>
+      <p class="hp-lobby-sub">O nível dos bots dessa mesa já vem definido pela stake escolhida.</p>
+
+      <div class="hp-level-options" id="levelOptions"></div>
+
+      <p class="hp-auth-status" id="sitDownStatus"></p>
+
+      <div class="hp-buyin-footer">
+        <button type="button" class="hp-btn hp-btn--ghost" id="btnBackToStake">← Trocar mesa</button>
+        <button type="button" class="hp-btn hp-btn--raise" id="btnSitDown">Sentar na mesa</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="hp-lobby" id="quizScreen" hidden>
+    <div class="hp-lobby-card">
+      <div class="hp-logo">Hand<span>path</span></div>
+      <h1>Quem era quem?</h1>
+      <p class="hp-lobby-sub">Antes de voltar, tenta adivinhar o estilo de cada bot que sentou com você.</p>
+
+      <div class="hp-quiz-roster" id="quizRoster"></div>
+
+      <div class="hp-buyin-footer">
+        <button type="button" class="hp-btn hp-btn--ghost" id="btnSkipQuiz">Pular</button>
+        <button type="button" class="hp-btn hp-btn--raise" id="btnRevealQuiz">Ver resultado</button>
+        <button type="button" class="hp-btn hp-btn--raise" id="btnQuizDone" hidden>Voltar ao lobby</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="hp-app" id="tableScreen" hidden>
+
+    <header class="hp-header">
+      <div class="hp-logo hp-logo--small">Hand<span>path</span></div>
+      <button type="button" class="hp-btn hp-btn--ghost" id="btnLeaveTable" title="Só entre mãos — termine a mão atual primeiro">Sair da mesa</button>
+    </header>
+
+    <main class="hp-table-wrap">
+      <div class="hp-table-oval" id="tableOval">
+        <div class="hp-board-area">
+          <div class="hp-pot">Pot: <span id="potAmount">0</span></div>
+          <div class="hp-cards hp-cards--board" id="boardCards"></div>
+          <div class="hp-deck" id="deckStack"></div>
+        </div>
+        <!-- os 6 seats são injetados aqui via script.js (buildSeatElements) -->
+      </div>
+    </main>
+
+    <section class="hp-status-bar" id="statusBar">
+      <span class="hp-status-text" id="statusText"></span>
+      <div class="hp-timer" id="turnTimer" hidden>
+        <svg viewBox="0 0 36 36" class="hp-timer-ring">
+          <circle class="hp-timer-track" cx="18" cy="18" r="16"></circle>
+          <circle class="hp-timer-fill" id="timerFillCircle" cx="18" cy="18" r="16"></circle>
+        </svg>
+        <span class="hp-timer-num" id="timerNum">30</span>
+      </div>
+    </section>
+
+    <section class="hp-actions" id="actionBar">
+      <button type="button" class="hp-btn hp-btn--fold" id="btnFold">Fold</button>
+      <button type="button" class="hp-btn hp-btn--check" id="btnCheckCall">Check</button>
+      <div class="hp-raise-group">
+        <input type="range" id="raiseSlider" min="0" max="0" value="0" step="10" />
+        <output id="raiseAmount">0</output>
+        <div class="hp-raise-quick">
+          <button type="button" class="hp-btn hp-btn--ghost" id="btnHalfPot">½ pot</button>
+          <button type="button" class="hp-btn hp-btn--ghost" id="btnPot">Pot</button>
+        </div>
+        <button type="button" class="hp-btn hp-btn--raise" id="btnBetRaise">Apostar</button>
+      </div>
+      <button type="button" class="hp-btn hp-btn--allin" id="btnAllin">All-in</button>
+    </section>
+
+    <section class="hp-next" id="nextHandBar" hidden>
+      <button type="button" class="hp-btn hp-btn--next" id="btnNextHand">Nova Mão</button>
+    </section>
+
+    <aside class="hp-log">
+      <h2>Histórico</h2>
+      <ol id="logList"></ol>
+    </aside>
+
+  </div>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/supabase.min.js"></script>
+  <script src="../supabase/config.js"></script>
+  <script src="../supabase/client.js"></script>
+  <script src="../engine/deck.js"></script>
+  <script src="../engine/handEval.js"></script>
+  <script src="../engine/table.js"></script>
+  <script src="../bots/botHelpers.js"></script>
+  <script src="../bots/paramBot.js"></script>
+  <script src="../bots/callingStation.js"></script>
+  <script src="script.js"></script>
+  <script src="session.js"></script>
+</body>
+</html>
