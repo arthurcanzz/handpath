@@ -1,8 +1,6 @@
 (function(){
   "use strict";
 
-  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   /* =====================================================
      FLAGS — SVG inline (emoji de bandeira não renderiza
      como imagem no Windows, então usamos SVG de verdade)
@@ -103,65 +101,6 @@
   }
 
   /* =====================================================
-     FORMULÁRIOS DE WAITLIST
-     ===================================================== */
-  function submitEmail(email){
-    if(!window.HandpathDB){
-      return Promise.resolve({ ok:false });
-    }
-    return window.HandpathDB
-      .from('waitlist')
-      .insert({ email: email, lang: currentLang })
-      .then(function(res){
-        // 23505 = e-mail já está na waitlist (unique index em lower(email))
-        // — trata como sucesso pra não vazar pro usuário se já cadastrou.
-        if(!res.error || res.error.code === '23505') return { ok:true };
-        return { ok:false };
-      })
-      .catch(function(){ return { ok:false }; });
-  }
-
-  function initForms(){
-    document.querySelectorAll('.waitlist-form').forEach(function(form){
-      var input = form.querySelector('input[type="email"]');
-      var button = form.querySelector('button');
-      var msg = form.nextElementSibling;
-      if(!msg || !msg.classList || !msg.classList.contains('form-msg')){ msg = null; }
-
-      input.addEventListener('input', function(){ input.classList.remove('has-error'); });
-
-      form.addEventListener('submit', function(e){
-        e.preventDefault();
-        var value = (input.value || '').trim();
-
-        if(!EMAIL_RE.test(value)){
-          input.classList.add('has-error');
-          if(msg){ msg.textContent = t('msg_invalid_email'); msg.className = 'form-msg error'; }
-          input.focus();
-          return;
-        }
-
-        button.disabled = true;
-        button.removeAttribute('data-i18n');
-        button.textContent = t('btn_sending');
-        if(msg){ msg.textContent = ''; msg.className = 'form-msg'; }
-
-        submitEmail(value).then(function(res){
-          if(res && res.ok){
-            button.textContent = t('btn_done');
-            if(msg){ msg.textContent = t('msg_success'); msg.className = 'form-msg success'; }
-            input.value = '';
-            input.disabled = true;
-          } else {
-            button.disabled = false;
-            if(msg){ msg.textContent = t('msg_error'); msg.className = 'form-msg error'; }
-          }
-        });
-      });
-    });
-  }
-
-  /* =====================================================
      FAQ
      ===================================================== */
   function initFaq(){
@@ -169,19 +108,6 @@
       item.querySelector('.faq-q').addEventListener('click', function(){
         item.classList.toggle('open');
       });
-    });
-  }
-
-  /* =====================================================
-     NAV CTA
-     ===================================================== */
-  function initNavCta(){
-    var navCta = document.getElementById('navCta');
-    var heroInput = document.querySelector('#heroForm input[type="email"]');
-    if(!navCta || !heroInput) return;
-    navCta.addEventListener('click', function(){
-      heroInput.scrollIntoView({behavior:'smooth', block:'center'});
-      setTimeout(function(){ heroInput.focus(); }, 450);
     });
   }
 
@@ -405,8 +331,6 @@
   /* =====================================================
      PLANOS
      ===================================================== */
-  var PLAN_NAMES = {free:'Free', starter:'Starter', pro:'Pro', elite:'Elite'};
-
   function setPlanPrices(isAnnual, animate){
     var toggle = document.getElementById('plansToggle');
     if(toggle) toggle.classList.toggle('annual', isAnnual);
@@ -438,17 +362,6 @@
       plansAnnual = !plansAnnual;
       setPlanPrices(plansAnnual, true);
     });
-    document.querySelectorAll('.plan-card .pc-cta').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var card = btn.closest('.plan-card');
-        selectPlanById(card.getAttribute('data-plan'));
-        var input = document.querySelector('#foundersForm input[type="email"]');
-        if(input){
-          input.scrollIntoView({behavior:'smooth', block:'center'});
-          setTimeout(function(){ input.focus(); }, 400);
-        }
-      });
-    });
   }
 
   function selectPlanById(planId){
@@ -459,10 +372,6 @@
       card.classList.add('highlight-pulse');
       if(hasGsap()){ gsap.fromTo(card, {scale:1}, {scale:1.02, duration:.25, yoyo:true, repeat:1, ease:'power1.inOut'}); }
       setTimeout(function(){ card.classList.remove('highlight-pulse'); }, 2600);
-    }
-    var note = document.getElementById('selectedPlanNote');
-    if(note && PLAN_NAMES[planId]){
-      note.textContent = t('selected_plan_template').replace('{plan}', PLAN_NAMES[planId]);
     }
   }
 
@@ -578,9 +487,7 @@
   /* =====================================================
      BOOT
      ===================================================== */
-  initForms();
   initFaq();
-  initNavCta();
   initHeroFloaters();
   initScrollProgress();
   buildLangSwitcher();

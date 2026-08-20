@@ -130,14 +130,17 @@ quiz de 8 perguntas que calcula nível e recomenda plano, seção de planos com
 toggle mensal/anual, seletor de idioma com bandeiras SVG (PT/EN/ES).
 
 **Pendências da landing (Fase 0):**
-1. ~~O formulário de waitlist ainda não envia e-mail para lugar nenhum~~ —
-   **resolvido**: `submitEmail()` em `landing/script.js` agora insere na
-   tabela `waitlist` do MESMO projeto Supabase do `trainer/` (não é backend
-   novo), via `window.HandpathDB` (`landing/supabase-config.js` +
-   `landing/supabase-client.js`, cópias autocontidas do config/client do
-   trainer — ver `landing/README.md`). Schema/RLS em
-   `trainer/supabase/migrations/0004_waitlist.sql`: client não autenticado
-   só tem INSERT, sem SELECT (anon key não expõe a lista de e-mails).
+1. ~~Waitlist~~ — **removida por decisão de produto**
+   (`handpath-fluxo-integrado.md`): não existe mais captura de e-mail nem
+   lista de espera. Os CTAs (nav, hero, cards de plano, seção final) linkam
+   direto pro login/signup real em `trainer/ui/index.html`. A landing não
+   fala mais com Supabase (`supabase-config.js`/`supabase-client.js`/
+   `vendor/supabase.min.js` removidos de `landing/`); a migration
+   `trainer/supabase/migrations/0004_waitlist.sql` fica só como registro
+   histórico, não deve mais ser aplicada. O restante do fluxo integrado
+   proposto nesse documento (Dashboard, gating de stake por plano) **ainda
+   não foi implementado** — só a remoção da waitlist e o link direto pro
+   login.
 2. A página ainda não está no ar (sem domínio/hospedagem).
 3. O currículo do curso por nível ainda não foi desenhado (conteúdo, não só a
    estrutura de níveis que já existe na landing page).
@@ -233,15 +236,18 @@ Estado atual:
 - Ainda fora de escopo em qualquer fase: bot "GTO-like" (deliberadamente
   tardio) e multi-table de verdade (várias mesas simultâneas).
 
-Duas frentes propostas em documentos separados, **ainda não iniciadas nem
-confirmadas em detalhe com o Arthur** — não são fases do
-`handpath-game-upgrade-prompt.md` acima, ficam fora da numeração 1-5:
+Duas frentes propostas em documentos separados, ficam fora da numeração 1-5
+dos itens acima (não são fases do `handpath-game-upgrade-prompt.md`):
 
 - `handpath-fluxo-integrado.md` — a ponte entre a landing e o app: fluxo
   Landing → Login/Signup → Escolha de plano → Dashboard (hub com nav pra
   Jogar/Curso/Calculadora de Equity/Prática/Dicas/Replay) → Jogar. Também
   propõe gating de stake por plano (Free=Micro, Starter=+Baixa, Pro=+Média,
   Elite=+Alta), independente do gating de bot por stake que já existe.
+  **Só a primeira peça foi implementada**: remoção da waitlist e CTAs da
+  landing linkando direto pro login/signup real (ver pendência 1 da
+  landing acima). Escolha de plano, Dashboard e gating por plano **ainda
+  não foram iniciados nem confirmados em detalhe com o Arthur**.
 - `handpath-retencao-monetizacao-realismo.md` — Fase 6 (curso amarrado a
   drill, leaderboard/desafios semanais) e Fase 7 (conteúdo recorrente tipo
   "mão do dia", bot "nêmesis" personalizado a partir do histórico do

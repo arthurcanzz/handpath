@@ -32,13 +32,12 @@ região Americas.
 - **`migrations/0005_session_summary.sql`** — coluna `summary jsonb` em
   `sessions` + RPC `save_session_summary(session_id, summary)`, usada pelo
   relatório pós-mesa da Fase 5. Ver "Persistência do histórico" abaixo.
-- **`migrations/0004_waitlist.sql`** — tabela `waitlist` (e-mail + idioma),
-  usada pela `landing/` (não pelo trainer). Reaproveita este mesmo projeto
-  Supabase em vez de um serviço novo — só INSERT é liberado pro client não
-  autenticado (`anon`), sem SELECT/UPDATE/DELETE, então a anon key não
-  expõe a lista de e-mails. Ver `landing/supabase-config.js` e
-  `landing/supabase-client.js` (cópias autocontidas deste config/client,
-  já que `landing/` é zipada/implantada separadamente do trainer).
+- **`migrations/0004_waitlist.sql`** — **obsoleta, não aplicar** (ver
+  `../../handpath-fluxo-integrado.md`): a landing não usa mais waitlist,
+  os CTAs linkam direto pro login/signup real em `trainer/ui/`. Mantida só
+  como registro histórico do schema. `landing/` não fala mais com
+  Supabase — `supabase-config.js`/`supabase-client.js`/
+  `vendor/supabase.min.js` foram removidos de lá.
 
 ## Modelo de segurança
 

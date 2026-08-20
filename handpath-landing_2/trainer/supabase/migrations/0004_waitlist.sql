@@ -1,5 +1,12 @@
 -- Handpath — waitlist da landing page (handpath-landing_2/landing/).
 --
+-- OBSOLETA — NÃO APLICAR. Mudança de decisão em
+-- ../../handpath-fluxo-integrado.md: a landing não usa mais waitlist, os
+-- CTAs linkam direto pro login/signup real em trainer/ui/. A landing não
+-- fala mais com Supabase (supabase-config.js/supabase-client.js/
+-- vendor/supabase.min.js foram removidos de landing/). Arquivo mantido só
+-- como registro histórico de schema.
+--
 -- Reaproveita o MESMO projeto Supabase do trainer/ (só pra não introduzir
 -- um serviço novo de e-mail/backend) em vez de ganhar uma tabela própria.
 -- A landing chama isso sem login (client não autenticado, role `anon`),
