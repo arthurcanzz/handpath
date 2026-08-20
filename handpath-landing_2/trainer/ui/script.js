@@ -549,10 +549,6 @@
       recordFinishedHand();
     }
 
-    // Só dá pra sair da mesa (cash-out) entre mãos — no meio de uma mão as
-    // fichas comprometidas no pote ainda não têm dono definido.
-    document.getElementById('btnLeaveTable').disabled = !state.isOver;
-
     renderSeats();
     setAvatarInitials();
     renderBoard();
@@ -779,7 +775,11 @@
   window.HandpathTable = {
     start: function(level, tableConfig){ startSession(level, tableConfig); },
     getHeroChips: function(){ return persistentStacks[HERO_SEAT]; },
-    isHandInProgress: function(){ return !!state && !state.isOver; },
+    // Sair da mesa é livre a qualquer momento, EXCETO quando o herói ainda
+    // está disputando o pote da mão atual (fichas ali ainda não têm dono
+    // definido) — nesse caso precisa desistir primeiro. Se ele já desistiu
+    // dessa mão (ou a mão terminou), pode sair mesmo com bots ainda jogando.
+    heroMustFoldToLeave: function(){ return !!state && !state.isOver && !state.players[HERO_SEAT].folded; },
     exitTable: function(){
       stopTurnTimer();
       stopNextHandCountdown();

@@ -510,6 +510,8 @@ button{ font-family:inherit; }
   justify-content:space-between;
   padding:1rem 1.25rem .5rem;
 }
+.hp-leave-wrap{ display:flex; align-items:center; gap:.7rem; }
+.hp-leave-status{ font-size:.8rem; color:var(--danger); }
 
 /* ================= MESA OVAL ================= */
 .hp-table-wrap{

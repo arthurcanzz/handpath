@@ -310,6 +310,7 @@
       hide('lobbyScreen');
       hide('bankrollWidget');
       hide('bankrollPanel');
+      setStatus('leaveTableStatus', '');
       window.HandpathTable.start(levelKey, {
         smallBlind: selectedStake.small_blind,
         bigBlind: selectedStake.big_blind,
@@ -323,7 +324,13 @@
   /* ---------------- sair da mesa: cash-out real ---------------- */
 
   document.getElementById('btnLeaveTable').addEventListener('click', function(){
-    if(window.HandpathTable.isHandInProgress() || !activeDbSessionId) return;
+    if(!activeDbSessionId) return;
+
+    if(window.HandpathTable.heroMustFoldToLeave()){
+      setStatus('leaveTableStatus', 'Desista da mão antes de sair da mesa.', true);
+      return;
+    }
+    setStatus('leaveTableStatus', '');
 
     var roster = window.HandpathTable.getRosterForQuiz();
     var heroChips = window.HandpathTable.getHeroChips();
@@ -339,6 +346,7 @@
     db.rpc('cash_out', { p_session_id: sessionId, p_final_chips: heroChips }).then(function(res){
       window.HandpathTable.exitTable();
       activeDbSessionId = null;
+      btn.disabled = false; // reabilita pra próxima sessão (tela fica escondida até lá)
 
       if(res.error){
         console.error(res.error);

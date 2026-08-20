@@ -154,7 +154,10 @@
 
     <header class="hp-header">
       <div class="hp-logo hp-logo--small">Hand<span>path</span></div>
-      <button type="button" class="hp-btn hp-btn--ghost" id="btnLeaveTable" title="Só entre mãos — termine a mão atual primeiro">Sair da mesa</button>
+      <div class="hp-leave-wrap">
+        <span class="hp-leave-status" id="leaveTableStatus"></span>
+        <button type="button" class="hp-btn hp-btn--ghost" id="btnLeaveTable">Sair da mesa</button>
+      </div>
     </header>
 
     <main class="hp-table-wrap">
