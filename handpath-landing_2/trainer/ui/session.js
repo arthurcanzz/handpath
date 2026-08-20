@@ -133,6 +133,9 @@
     hide('lobbyScreen');
     hide('buyinScreen');
     hide('tableScreen');
+    hide('quizScreen');
+    hide('reportScreen');
+    hide('replayScreen');
     show('authScreen');
     setStatus('authStatus', '');
   }
@@ -310,7 +313,9 @@
       window.HandpathTable.start(levelKey, {
         smallBlind: selectedStake.small_blind,
         bigBlind: selectedStake.big_blind,
-        buyIn: selectedBuyIn
+        buyIn: selectedBuyIn,
+        minBuyIn: selectedStake.min_buyin,
+        maxBuyIn: selectedStake.max_buyin
       });
     });
   });
@@ -322,10 +327,16 @@
 
     var roster = window.HandpathTable.getRosterForQuiz();
     var heroChips = window.HandpathTable.getHeroChips();
+    var sessionId = activeDbSessionId;
     var btn = document.getElementById('btnLeaveTable');
     btn.disabled = true;
 
-    db.rpc('cash_out', { p_session_id: activeDbSessionId, p_final_chips: heroChips }).then(function(res){
+    // Histórico e meta vêm da memória ANTES de fechar a mesa — o relatório
+    // e o replay (Fase 5) são construídos a partir daí, não do banco.
+    var history = window.HandpathTable.getHandHistory();
+    var meta = window.HandpathTable.getSessionMeta();
+
+    db.rpc('cash_out', { p_session_id: sessionId, p_final_chips: heroChips }).then(function(res){
       window.HandpathTable.exitTable();
       activeDbSessionId = null;
 
@@ -335,13 +346,37 @@
         currentBankroll = res.data;
       }
 
-      showQuiz(roster);
+      saveSessionSummary(sessionId, history, meta);
+      showQuiz(roster, history, meta);
     });
   });
 
+  // Persistência híbrida (Fase 5): as mãos completas ficam só em memória,
+  // mas um resumo agregado por sessão vai pro banco — é a base histórica
+  // que rating/ELO e detecção de vazamento vão consumir depois. Falhar aqui
+  // NÃO pode quebrar o fluxo: o relatório é montado da memória de qualquer
+  // jeito, então só registra no console.
+  function saveSessionSummary(sessionId, history, meta){
+    if(!sessionId || !history || !history.length) return;
+
+    var summary;
+    try{
+      summary = window.HandpathReport.buildSessionSummary(history, meta);
+    } catch(err){
+      console.error('Falha ao montar o resumo da sessão:', err);
+      return;
+    }
+    if(!summary) return;
+
+    db.rpc('save_session_summary', { p_session_id: sessionId, p_summary: summary })
+      .then(function(res){
+        if(res.error) console.error('Resumo da sessão não foi salvo:', res.error);
+      });
+  }
+
   /* ---------------- quiz pós-mesa: "quem era quem?" ---------------- */
 
-  function showQuiz(roster){
+  function showQuiz(roster, history, meta){
     var container = document.getElementById('quizRoster');
     container.innerHTML = '';
 
@@ -357,9 +392,16 @@
     btnReveal.hidden = false;
     btnDone.hidden = true;
 
+    // O quiz vem ANTES do relatório de propósito: o relatório mostra
+    // showdowns e frequências que entregariam as respostas do quiz.
+    function goToReport(){
+      hide('quizScreen');
+      window.HandpathReport.open(history, meta, function(){ loadStakeScreen(); });
+    }
+
     btnReveal.onclick = function(){ revealQuiz(rows); };
-    btnSkip.onclick = function(){ hide('quizScreen'); loadStakeScreen(); };
-    btnDone.onclick = function(){ hide('quizScreen'); loadStakeScreen(); };
+    btnSkip.onclick = goToReport;
+    btnDone.onclick = goToReport;
 
     show('quizScreen');
   }

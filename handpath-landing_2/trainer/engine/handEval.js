@@ -126,9 +126,55 @@
     return best;
   }
 
+  // Quando duas mãos têm a MESMA categoria, diz se o que separou as duas
+  // foi o kicker (e não o rank principal da categoria). O índice 0 dos
+  // tiebreakers é sempre o rank que define a categoria — par de Ases vs
+  // par de Reis diverge em 0 e NÃO é decisão de kicker. Divergir de 1 em
+  // diante é kicker de verdade.
+  //
+  // Usado em dois lugares: a mensagem de resultado ao vivo na mesa
+  // (trainer/ui/script.js) e o relatório pós-mesa (trainer/ui/report.js).
+  function kickerBetween(winnerEval, loserEval){
+    if(!winnerEval || !loserEval) return null;
+    if(winnerEval.category !== loserEval.category) return null;
+
+    for(var i=0;i<winnerEval.tiebreakers.length;i++){
+      var wv = winnerEval.tiebreakers[i] || 0;
+      var lv = loserEval.tiebreakers[i] || 0;
+      if(wv !== lv){
+        if(i === 0) return null;
+        return { winnerRank: wv, loserRank: lv, tiebreakerIndex: i };
+      }
+    }
+    return null;
+  }
+
+  // Mesma pergunta, mas no nível de um pote de showdown (a estrutura que
+  // table.js monta em state.potResults.pots): o kicker decidiu ESTE pote?
+  // Compara o vencedor com o melhor perdedor que era elegível àquela
+  // camada. Pote dividido nunca conta — empate significa que o desempate
+  // foi até o fim sem separar ninguém.
+  function potKicker(pot, evalsBySeat){
+    if(!pot || !evalsBySeat || pot.winners.length !== 1) return null;
+
+    var winnerEval = evalsBySeat[pot.winners[0]];
+    var runnerUpEval = null;
+    for(var i=0;i<pot.eligibleSeats.length;i++){
+      var seat = pot.eligibleSeats[i];
+      if(pot.winners.indexOf(seat) !== -1) continue;
+      var ev = evalsBySeat[seat];
+      if(!ev) continue;
+      if(!runnerUpEval || compareEvals(ev, runnerUpEval) > 0) runnerUpEval = ev;
+    }
+
+    return kickerBetween(winnerEval, runnerUpEval);
+  }
+
   HandpathEngine.evaluate5 = evaluate5;
   HandpathEngine.evaluateBest = evaluateBest;
   HandpathEngine.compareEvals = compareEvals;
   HandpathEngine.combinations = combinations;
+  HandpathEngine.kickerBetween = kickerBetween;
+  HandpathEngine.potKicker = potKicker;
 
 })();

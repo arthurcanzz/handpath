@@ -11,7 +11,7 @@ handpath-landing_2/
     ├── engine/     → lógica pura de poker: deck.js, handEval.js, table.js (mesa N-max c/ side pots)
     ├── bots/       → botHelpers.js + paramBot.js (motor único, 8 presets) + callingStation.js (wrapper)
     ├── supabase/   → conta/bankroll persistente (Postgres + Auth via Supabase) — config.js, client.js, migrations/
-    └── ui/         → auth + escolher mesa/nível + mesa 6-max (index.html/styles.css/script.js/session.js/vendor/)
+    └── ui/         → auth + escolher mesa/nível + mesa 6-max + relatório/replay (index.html/styles.css/script.js/report.js/session.js/vendor/)
 ```
 
 Cada pasta tem seu próprio `README.md` explicando o que já mora ali. Estado
@@ -40,8 +40,8 @@ puro servido estaticamente. Fluxo de trabalho:
 
 Site estático de página única (`landing/index.html`), sem framework, sem módulos
 ES — tudo carregado via `<script>` tags globais na ordem: `vendor/gsap.min.js` →
-`vendor/ScrollTrigger.min.js` → `i18n.js` → `script.js` (todos relativos a
-`landing/`).
+`vendor/ScrollTrigger.min.js` → `vendor/supabase.min.js` → `supabase-config.js` →
+`supabase-client.js` → `i18n.js` → `script.js` (todos relativos a `landing/`).
 
 - **`script.js`** é uma única IIFE (`(function(){ "use strict"; ... })()`) que
   contém todas as features do site como funções independentes, todas chamadas
@@ -52,8 +52,9 @@ ES — tudo carregado via `<script>` tags globais na ordem: `vendor/gsap.min.js`
   usuário não tiver `prefers-reduced-motion`.
   - Módulos principais dentro do arquivo: engine de i18n (`t()`,
     `detectDefaultLang()`, `applyLanguage()`, `buildLangSwitcher()`), formulário
-    de waitlist (`submitEmail()` — atualmente um **stub que não envia e-mail
-    para lugar nenhum**, `initForms()`), quiz de nível (`cacheQuizDom()`,
+    de waitlist (`submitEmail()` insere em `window.HandpathDB.from('waitlist')`
+    — mesmo projeto Supabase do `trainer/`, ver Pendências da landing abaixo —,
+    `initForms()`), quiz de nível (`cacheQuizDom()`,
     `renderQuizQuestion()`, `selectQuizAnswer()`, `finishQuiz()`,
     `levelKeyFromScore()`, `planFromScore()`), seção de planos
     (`setPlanPrices()`, `initPlans()`, `selectPlanById()`), e motion/GSAP
@@ -129,12 +130,21 @@ quiz de 8 perguntas que calcula nível e recomenda plano, seção de planos com
 toggle mensal/anual, seletor de idioma com bandeiras SVG (PT/EN/ES).
 
 **Pendências da landing (Fase 0):**
-1. O formulário de waitlist **ainda não envia e-mail para lugar nenhum** — é
-   um stub (`submitEmail()` em `landing/script.js`). Bloqueante antes de
-   divulgar a página para qualquer pessoa fora do círculo do Arthur.
+1. ~~O formulário de waitlist ainda não envia e-mail para lugar nenhum~~ —
+   **resolvido**: `submitEmail()` em `landing/script.js` agora insere na
+   tabela `waitlist` do MESMO projeto Supabase do `trainer/` (não é backend
+   novo), via `window.HandpathDB` (`landing/supabase-config.js` +
+   `landing/supabase-client.js`, cópias autocontidas do config/client do
+   trainer — ver `landing/README.md`). Schema/RLS em
+   `trainer/supabase/migrations/0004_waitlist.sql`: client não autenticado
+   só tem INSERT, sem SELECT (anon key não expõe a lista de e-mails).
 2. A página ainda não está no ar (sem domínio/hospedagem).
 3. O currículo do curso por nível ainda não foi desenhado (conteúdo, não só a
    estrutura de níveis que já existe na landing page).
+4. `handpath-landing-motion-spec.md` (scroll-scrub com pin na seção "Como
+   funciona", seção de stats com contador, cartas 3D no hero) é um refinamento
+   proposto da Fase 0 — **spec ainda não implementada**: `initPillarsScrub()`,
+   `initStatsSection()` e `initHeroCards()` não existem em `landing/script.js`.
 
 O simulador (`trainer/`) segue as fases de `handpath-game-upgrade-prompt.md`.
 Estado atual:
@@ -161,21 +171,84 @@ Estado atual:
   mãos em Node (conservação de fichas, sem exceções). Esses dois bugs de
   realismo e a reformulação de fluxo/stakes acima vieram de
   `handpath-ajustes-fase1-fase2.md`, que a partir de agora está incorporado
-  aqui e pode ser considerado obsoleto.
-- **Fase 3 (mesa e cartas, visual) — não iniciada:** cartas comunitárias
-  ainda verticais, mesa pequena, sem animação de baralho, sem indicador de
-  mão atual nem kicker explicado no showdown. Pendente também: mostrar BB
-  junto do saldo do jogador na mesa.
-- **Fase 4 (fluxo de rodada e mesa) — não iniciada:** botão "Nova Mão"
-  manual ainda existe (rodadas não avançam sozinhas), sem delay/barra de
-  tempo entre mãos. Quando entrar, também traz a revelação da mão de quem
-  chegou ao showdown (não de quem foldou) no intervalo entre mãos.
-- **Fase 5 (relatório pós-mesa) — não iniciada, depende da Fase 4.**
-  Decisão já travada: vai incluir histórico completo de mãos (cartas de
-  todos, ações, resultado de cada mão) + replay pós-mesa, reusando a mesma
-  base de dados — não construir nada disso antes da Fase 4 estar pronta.
+  aqui e pode ser considerado obsoleto. Corrigido também um bug real do
+  motor de turnos (`trainer/engine/table.js`, `advanceTurnOrStreet`): um
+  jogador podia ficar sem chance de responder a um all-in (a mão pulava
+  reto pro showdown) quando ele era o único ainda "isActionable" restante
+  — ver `trainer/engine/README.md`. Bots agora sentam com stacks
+  variados dentro do buy-in da stake (antes todos tinham o mesmo valor do
+  buy-in do herói) e o herói sempre senta como Big Blind na primeira mão
+  da sessão — ver `trainer/ui/README.md`.
+  - **Agressividade e sizing (`handpath-fase2-agressividade.md`) — os 6
+    itens implementados e validados.** Três bugs estruturais que causavam
+    a "mesa parada" foram corrigidos: (a) todo raise virava all-in, porque
+    o sizing interpolava até `betAction.max`, que é o stack inteiro — agora
+    o alvo é absoluto (2–3.5BB, 50–75% do pote) e all-in só sai em
+    push/fold ou por `rareShoveFrequency`; (b) `openingRangeByPosition` não
+    significava nada, porque o limiar comparava "fatia de mãos" com um
+    score não-uniforme — `preflopStrength` agora devolve percentil real;
+    (c) todos os presets limpavam ~65% das mãos que jogavam — abrir agora
+    é dar raise (`openRaiseFrequency`), e limp virou leak de arquétipo
+    passivo. Entraram também button como posição própria, raise de
+    isolamento, 3-bet especulativo, squeeze e variação de tamanho de
+    aposta. O valor da aposta é arredondado pro múltiplo do small blind
+    (`raiseToTotal`) — o Arthur reclamou de raise com número quebrado tipo
+    282; isso mexe só no tamanho, não nas frequências de decisão.
+    Detalhe completo, números da validação de 40 mil mãos e uma
+    armadilha de metodologia (não correlacionar preset com posição ao
+    medir) em `trainer/bots/README.md`.
+- **Fase 3 (mesa e cartas, visual) — implementada, pendente de conferência
+  visual manual num navegador real** (sem chromium-cli/Playwright neste
+  ambiente, só `node --check` + checagem de que os arquivos servem sem
+  404 a partir da raiz do repo — ver `trainer/ui/README.md`). Cartas
+  comunitárias horizontais (era bug de CSS: `.hp-cards--board` não tinha
+  `display:flex`), mesa e cartas maiores, animação de baralho (cartas
+  "saem" do `#deckStack` e viram com `rotateY`, flop/turn/river em
+  sequência), indicador da mão atual do herói a partir do flop (só
+  Iniciante/Intermediário — Avançado não vê), kicker explicado no
+  showdown quando ele decide o pote (não a categoria principal), e BB
+  junto do saldo em cada seat.
+- **Fase 4 (fluxo de rodada e mesa) — implementada, pendente da mesma
+  conferência visual manual da Fase 3** (ver `trainer/ui/README.md`).
+  Botão manual "Nova Mão" removido; rodadas avançam sozinhas 5s depois do
+  fim da mão (barra regressiva, `startNextHandCountdown`), com botão
+  "Pular" pra adiantar. A revelação da mão de quem chegou ao showdown (não
+  de quem foldou) já existia desde a Fase 1/3 e continua valendo durante
+  essa janela — não precisou de mudança.
+- **Fase 5 (relatório pós-mesa + replay) — implementada, matemática
+  validada em Node; visual pendente de conferência manual.** Fluxo: Sair
+  da mesa → quiz "quem era quem" → relatório → lobby (o quiz vem antes de
+  propósito: o relatório entregaria as respostas dele). Tudo por regra e
+  estatística, sem chamada de IA. `trainer/ui/report.js` mostra resultado
+  da sessão e BB/100, maiores potes, VPIP/PFR e frequências de ação, mãos
+  decididas por kicker, e as **mãos de azar** — onde a equity real do
+  herói era maior que as pot odds exigidas e ele perdeu mesmo assim
+  ("decisão certa, foi variância"). A equity é enumerada de verdade
+  (flop = 990 runouts, turn = 44; só pré-flop usa amostragem) e é exata
+  porque num simulador as cartas dos oponentes são conhecidas. Replay
+  caminha mão a mão pelo log. **Persistência híbrida** decidida com o
+  Arthur: mãos completas só em memória, e um resumo agregado por sessão
+  vai pro Supabase (`0005_session_summary.sql`) pra alimentar rating/ELO
+  e detecção de vazamento depois — ver `trainer/supabase/README.md`.
 - Ainda fora de escopo em qualquer fase: bot "GTO-like" (deliberadamente
   tardio) e multi-table de verdade (várias mesas simultâneas).
+
+Duas frentes propostas em documentos separados, **ainda não iniciadas nem
+confirmadas em detalhe com o Arthur** — não são fases do
+`handpath-game-upgrade-prompt.md` acima, ficam fora da numeração 1-5:
+
+- `handpath-fluxo-integrado.md` — a ponte entre a landing e o app: fluxo
+  Landing → Login/Signup → Escolha de plano → Dashboard (hub com nav pra
+  Jogar/Curso/Calculadora de Equity/Prática/Dicas/Replay) → Jogar. Também
+  propõe gating de stake por plano (Free=Micro, Starter=+Baixa, Pro=+Média,
+  Elite=+Alta), independente do gating de bot por stake que já existe.
+- `handpath-retencao-monetizacao-realismo.md` — Fase 6 (curso amarrado a
+  drill, leaderboard/desafios semanais) e Fase 7 (conteúdo recorrente tipo
+  "mão do dia", bot "nêmesis" personalizado a partir do histórico do
+  usuário) propostas como próximo passo depois da Fase 5, focadas em
+  retenção/monetização. Também detalha até onde vale a pena levar o
+  realismo dos bots (Nível 1, já em andamento na Fase 2, vs. Nível 2
+  tipo Pluribus, fora de escopo).
 
 ## Preferências do Arthur
 

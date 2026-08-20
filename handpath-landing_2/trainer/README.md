@@ -4,8 +4,11 @@ O produto de verdade do Handpath: curso estruturado por nível + simulador de
 multi-table/multi-hand contra bots. **Protótipo rodando**: mesa 6-max NLHE
 completa, com lobby de seleção de nível (Iniciante/Intermediário/Avançado)
 que decide a mistura de bots, timer de 30s pro jogador, delay realista de
-bot (2-6s) e animações — jogável em `ui/index.html`. Multi-table (várias
-mesas simultâneas) e o curso em si ainda não existem.
+bot (2-6s), cartas/mesa maiores com animação de baralho, indicador de mão
+atual (Iniciante/Intermediário), kicker explicado no showdown, rodadas
+que avançam sozinhas (5s entre mãos, com opção de pular) e relatório
+pós-mesa com replay mão a mão — jogável em `ui/index.html`. Multi-table
+(várias mesas simultâneas) e o curso em si ainda não existem.
 
 Escopo inicial (não reverter sem confirmar com o Arthur): apenas NLHE cash
 game 6-max. Torneio/ICM fica para depois. Ver `../CLAUDE.md` para as decisões
@@ -20,9 +23,12 @@ overlay em mesa de dinheiro real — isso seria RTA, banido pelos operadores).
 - `bots/` — um motor de decisão único e parametrizado (`paramBot.js`) com 8
   presets prontos (Nit, TAG, LAG, Maniac, Calling Station, Short-Stack
   Shover, Iniciante, Intermediário) — ver `bots/README.md`.
-- `ui/` — lobby de nível + mesa 6-max jogável em HTML/CSS/JS puro
-  (`ui/index.html`), consumindo `engine/` e `bots/` via `<script>` tags
-  globais — mesma convenção da `landing/`. Ver `ui/README.md`.
+- `ui/` — lobby de nível + mesa 6-max jogável + relatório pós-mesa/replay
+  em HTML/CSS/JS puro (`ui/index.html`), consumindo `engine/` e `bots/`
+  via `<script>` tags globais — mesma convenção da `landing/`. Ver
+  `ui/README.md`.
+- `supabase/` — conta, bankroll e resumo agregado de sessão. Ver
+  `supabase/README.md`.
 
 ## Como rodar o protótipo
 

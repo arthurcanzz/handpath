@@ -229,7 +229,16 @@
     // mundo mais all-in ou folded) — nesse caso não há mais ninguém pra
     // agir, e forçar nextSeat aqui devolveria null (bug real encontrado
     // pelo smoke test: actingIndex virava null e legalActions quebrava).
-    if(countActionable(state) <= 1){
+    //
+    // IMPORTANTE: tem que ser === 0, não <= 1. Bug real relatado pelo
+    // Arthur: herói aposta, um bot desiste, outro bot dá all-in — nesse
+    // ponto sobra exatamente 1 jogador "isActionable" (o herói, que ainda
+    // não pareou o all-in). Com <= 1 esse único jogador restante era
+    // pulado direto pro showdown/próxima street sem chance de responder
+    // ao all-in (call/fold/raise) — violava a regra básica do jogo. Com
+    // === 0, esse caso cai no branch de raisedThisAction logo abaixo, que
+    // corretamente usa nextSeat(...) pra devolver a vez pro herói.
+    if(countActionable(state) === 0){
       goToNextStreet(state);
       return;
     }

@@ -15,6 +15,7 @@
   var BOT_DELAY_MAX_MS = 6000;
   var TURN_SECONDS = 30;
   var TIMER_CIRCUMFERENCE = 2 * Math.PI * 16;
+  var HAND_END_DELAY_SECONDS = 5;
 
   var LEVEL_ROSTERS = {
     beginner: ['beginner', 'beginner', 'beginner', 'callingStation', 'callingStation'],
@@ -42,9 +43,20 @@
   var seatEls = [];
   var lastBoardLength = 0;
 
+  // Histórico da sessão (Fase 5): um registro por mão, em memória. É a base
+  // compartilhada do relatório pós-mesa E do replay — não são duas features
+  // separadas (decisão travada, ver trainer/supabase/README.md). O formato
+  // do registro é o mesmo que iria pro banco se o histórico completo for
+  // persistido no futuro; hoje só um resumo agregado vai pro Supabase.
+  var handHistory = [];
+  var handStartingStacks = [];
+  var currentHandRecorded = false;
+
   var timerInterval = null;
   var timerRemaining = TURN_SECONDS;
   var botActTimeout = null;
+  var nextHandInterval = null;
+  var nextHandRemaining = HAND_END_DELAY_SECONDS;
 
   /* ---------------- helpers genéricos ---------------- */
 
@@ -80,6 +92,16 @@
     return names;
   }
 
+  // Stack de bot dentro do range de buy-in da stake, arredondado pra
+  // dezena mais próxima — parece uma quantia de verdade que alguém já
+  // jogou umas mãos (ex.: 29870), não nem redondo demais (30000) nem
+  // quebrado demais (29873).
+  function randomBotStack(minBuyIn, maxBuyIn){
+    var raw = minBuyIn + Math.random() * (maxBuyIn - minBuyIn);
+    var rounded = Math.round(raw / 10) * 10;
+    return Math.max(minBuyIn, Math.min(maxBuyIn, rounded));
+  }
+
   function startSession(level, tableConfig){
     currentLevel = level;
     botPresetNames = LEVEL_ROSTERS[level];
@@ -88,9 +110,19 @@
     currentBigBlind = tableConfig.bigBlind;
     currentBuyIn = tableConfig.buyIn;
 
+    handHistory = [];
     persistentStacks = [];
-    for(var i=0;i<SEAT_COUNT;i++) persistentStacks.push(currentBuyIn);
-    dealerIndex = 0;
+    for(var i=0;i<SEAT_COUNT;i++){
+      persistentStacks.push(i === HERO_SEAT
+        ? currentBuyIn
+        : randomBotStack(tableConfig.minBuyIn, tableConfig.maxBuyIn));
+    }
+
+    // O herói sempre senta como Big Blind na primeira mão da sessão (pedido
+    // explícito do Arthur) — com todos os 6 seats vivos, isso significa o
+    // dealer começar 2 seats antes do herói (SB e BB caem exatamente nele).
+    // Mãos seguintes rotacionam normalmente via rotateDealer().
+    dealerIndex = (HERO_SEAT - 2 + SEAT_COUNT) % SEAT_COUNT;
 
     buildSeatElements();
     document.getElementById('buyinScreen').hidden = true;
@@ -151,8 +183,17 @@
     name.className = 'hp-seat-name';
     var stack = document.createElement('div');
     stack.className = 'hp-seat-stack';
+    var stackAmount = document.createElement('span');
+    var stackBb = document.createElement('span');
+    stackBb.className = 'hp-seat-stack-bb';
+    stack.appendChild(stackAmount);
+    stack.appendChild(stackBb);
+    var handIndicator = document.createElement('div');
+    handIndicator.className = 'hp-hand-indicator';
+    handIndicator.hidden = true;
     panel.appendChild(name);
     panel.appendChild(stack);
+    panel.appendChild(handIndicator);
 
     var cards = document.createElement('div');
     cards.className = 'hp-seat-cards';
@@ -166,7 +207,10 @@
     root.appendChild(cards);
     root.appendChild(bet);
 
-    return { root: root, avatar: avatar, name: name, stack: stack, cards: cards, bet: bet, dealerBtn: dealerBtn };
+    return {
+      root: root, avatar: avatar, name: name, stack: stack, stackAmount: stackAmount,
+      stackBb: stackBb, handIndicator: handIndicator, cards: cards, bet: bet, dealerBtn: dealerBtn
+    };
   }
 
   /* ---------------- render ---------------- */
@@ -199,7 +243,15 @@
       el.root.classList.toggle('hp-seat--acting', !state.isOver && state.actingIndex === i);
 
       el.name.textContent = p.name;
-      el.stack.textContent = p.stack;
+      el.stackAmount.textContent = p.stack;
+      el.stackBb.textContent = '· ' + Math.round(p.stack / state.bigBlind) + ' BB';
+
+      if(i === HERO_SEAT && currentLevel !== 'advanced' && state.board.length >= 3){
+        el.handIndicator.textContent = HandpathEngine.evaluateBest(p.holeCards.concat(state.board)).name;
+        el.handIndicator.hidden = false;
+      } else {
+        el.handIndicator.hidden = true;
+      }
 
       var revealAtShowdown = state.isOver && state.winReason === 'showdown' && !p.folded;
       var faceDown = i !== HERO_SEAT && !revealAtShowdown;
@@ -231,16 +283,38 @@
     }
   }
 
+  function animateBoardDeal(newCardEls){
+    if(!canAnimate()) return;
+    var deckEl = document.getElementById('deckStack');
+    var deckRect = deckEl.getBoundingClientRect();
+    newCardEls.forEach(function(cardEl, i){
+      var cardRect = cardEl.getBoundingClientRect();
+      var dx = deckRect.left - cardRect.left;
+      var dy = deckRect.top - cardRect.top;
+      gsap.fromTo(cardEl,
+        { x: dx, y: dy, rotateY: 90, opacity: 0 },
+        { x: 0, y: 0, rotateY: 0, opacity: 1, duration: 0.35, delay: i * 0.12, ease: 'power2.out' }
+      );
+    });
+  }
+
   function renderBoard(){
     document.getElementById('potAmount').textContent = state.pot;
     var boardEl = document.getElementById('boardCards');
     renderCards(boardEl, state.board, false);
 
-    if(canAnimate() && state.board.length > lastBoardLength){
+    if(state.board.length > lastBoardLength){
       var newCards = Array.prototype.slice.call(boardEl.children, lastBoardLength);
-      gsap.from(newCards, { opacity: 0, y: -10, duration: 0.35, stagger: 0.08, ease: 'power2.out' });
+      animateBoardDeal(newCards);
     }
     lastBoardLength = state.board.length;
+  }
+
+  function findKickerNote(pot){
+    var kicker = HandpathEngine.potKicker(pot, state.potResults.evalsBySeat);
+    if(!kicker) return '';
+    return ' — kicker ' + HandpathEngine.rankLabel(kicker.winnerRank) +
+           ' venceu kicker ' + HandpathEngine.rankLabel(kicker.loserRank);
   }
 
   function buildResultMessage(){
@@ -249,7 +323,7 @@
     }
     var parts = state.potResults.pots.map(function(pot){
       var names = pot.winners.map(function(seat){ return state.players[seat].name; }).join(' e ');
-      return names + ' ganhou ' + pot.amount + ' (' + pot.evalName + ')';
+      return names + ' ganhou ' + pot.amount + ' (' + pot.evalName + ')' + findKickerNote(pot);
     });
     return parts.join(' · ');
   }
@@ -269,13 +343,48 @@
     text.textContent = state.actingIndex === HERO_SEAT ? 'Sua vez' : actor.name + ' está pensando…';
   }
 
+  function stopNextHandCountdown(){
+    if(nextHandInterval){ clearInterval(nextHandInterval); nextHandInterval = null; }
+    document.getElementById('nextHandBar').hidden = true;
+  }
+
+  function updateNextHandDisplay(){
+    var pct = Math.max(0, nextHandRemaining / HAND_END_DELAY_SECONDS) * 100;
+    document.getElementById('nextHandFill').style.width = pct + '%';
+    document.getElementById('nextHandSeconds').textContent = Math.max(0, nextHandRemaining);
+  }
+
+  function advanceToNextHand(){
+    stopNextHandCountdown();
+    rotateDealer();
+    startNewHand();
+  }
+
+  function startNextHandCountdown(){
+    if(nextHandInterval) return; // já contando — render() pode rodar de novo, não reinicia o relógio
+
+    nextHandRemaining = HAND_END_DELAY_SECONDS;
+    document.getElementById('nextHandBar').hidden = false;
+    updateNextHandDisplay();
+
+    nextHandInterval = setInterval(function(){
+      nextHandRemaining--;
+      updateNextHandDisplay();
+      if(nextHandRemaining <= 0) advanceToNextHand();
+    }, 1000);
+  }
+
   function renderNextHandBar(){
-    var bar = document.getElementById('nextHandBar');
-    // Fim de jogo (herói zerou ou só ele sobrou) não reseta fichas de graça
-    // — isso seria dinheiro infinito agora que o bankroll é persistido de
-    // verdade. Nesse caso o único caminho é "Sair da mesa", que faz o
-    // cash-out real do que sobrou (ver btnLeaveTable em session.js).
-    bar.hidden = !state.isOver || isGameOver();
+    // Fim de jogo (herói zerou ou só ele sobrou) não avança sozinho nem
+    // reseta fichas de graça — isso seria dinheiro infinito agora que o
+    // bankroll é persistido de verdade. Nesse caso o único caminho é "Sair
+    // da mesa", que faz o cash-out real do que sobrou (ver btnLeaveTable em
+    // session.js).
+    if(!state.isOver || isGameOver()){
+      stopNextHandCountdown();
+      return;
+    }
+    startNextHandCountdown();
   }
 
   function textSpan(className, text){
@@ -386,8 +495,59 @@
     btnAllin.disabled = !allinAction;
   }
 
+  /* ---------------- histórico da sessão (Fase 5) ---------------- */
+
+  function recordFinishedHand(){
+    var players = [];
+    for(var i=0;i<SEAT_COUNT;i++){
+      var p = state.players[i];
+      players.push({
+        seat: i,
+        name: p.name,
+        isBot: p.isBot,
+        // arquétipo real fica no registro (o relatório/replay são pós-mesa,
+        // depois do quiz — revelar aqui não estraga nada)
+        archetypeKey: i === HERO_SEAT ? null : botPresetNames[i - 1],
+        startingStack: handStartingStacks[i],
+        endingStack: p.stack,
+        holeCards: p.holeCards,
+        folded: p.folded,
+        sittingOut: p.sittingOut
+      });
+    }
+
+    var record = {
+      index: handHistory.length + 1,
+      dealerIndex: state.dealerIndex,
+      sbIndex: state.sbIndex,
+      bbIndex: state.bbIndex,
+      smallBlind: state.smallBlind,
+      bigBlind: state.bigBlind,
+      players: players,
+      board: state.board,
+      log: state.log,
+      pot: state.pot,
+      winReason: state.winReason,
+      winnerIndex: state.winnerIndex,
+      potResults: state.potResults,
+      heroNet: state.players[HERO_SEAT].stack - handStartingStacks[HERO_SEAT]
+    };
+
+    // Cópia profunda: o `state` inteiro é substituído na próxima mão, e o
+    // registro precisa sobreviver intacto até o relatório.
+    handHistory.push(JSON.parse(JSON.stringify(record)));
+  }
+
   function render(){
     for(var i=0;i<SEAT_COUNT;i++) persistentStacks[i] = state.players[i].stack;
+
+    // Grava a mão assim que ela termina — e não no início da próxima, senão
+    // a ÚLTIMA mão da sessão nunca entraria no histórico (o usuário sai da
+    // mesa em vez de avançar pra próxima).
+    if(state.isOver && !currentHandRecorded){
+      currentHandRecorded = true;
+      recordFinishedHand();
+    }
 
     // Só dá pra sair da mesa (cash-out) entre mãos — no meio de uma mão as
     // fichas comprometidas no pote ainda não têm dono definido.
@@ -553,12 +713,19 @@
 
   function startNewHand(){
     stopTurnTimer();
+    stopNextHandCountdown();
     if(botActTimeout){ clearTimeout(botActTimeout); botActTimeout = null; }
     lastBoardLength = 0;
 
     var configPlayers = [];
+    handStartingStacks = [];
+    currentHandRecorded = false;
     for(var i=0;i<SEAT_COUNT;i++){
       configPlayers.push({ id: 'seat' + i, name: playerNames[i], isBot: i !== HERO_SEAT, stack: persistentStacks[i] });
+      // render() sobrescreve persistentStacks a cada frame, então o stack de
+      // ABERTURA da mão tem que ser guardado aqui pra o histórico saber
+      // quanto cada um ganhou/perdeu nela.
+      handStartingStacks.push(persistentStacks[i]);
     }
 
     state = HandpathEngine.createHandState({
@@ -603,9 +770,8 @@
   document.getElementById('btnHalfPot').addEventListener('click', function(){ setRaiseSizing(0.5); });
   document.getElementById('btnPot').addEventListener('click', function(){ setRaiseSizing(1); });
 
-  document.getElementById('btnNextHand').addEventListener('click', function(){
-    rotateDealer();
-    startNewHand();
+  document.getElementById('btnSkipNextHand').addEventListener('click', function(){
+    advanceToNextHand();
   });
 
   /* ---------------- API pública pra session.js (auth/bankroll/buy-in) ---------------- */
@@ -616,8 +782,24 @@
     isHandInProgress: function(){ return !!state && !state.isOver; },
     exitTable: function(){
       stopTurnTimer();
+      stopNextHandCountdown();
       if(botActTimeout){ clearTimeout(botActTimeout); botActTimeout = null; }
       document.getElementById('tableScreen').hidden = true;
+    },
+    // Histórico da sessão (Fase 5) — base compartilhada do relatório e do
+    // replay. Devolvido depois do cash-out, quando a mesa já fechou.
+    getHandHistory: function(){ return handHistory; },
+    getSessionMeta: function(){
+      return {
+        level: currentLevel,
+        smallBlind: currentSmallBlind,
+        bigBlind: currentBigBlind,
+        buyIn: currentBuyIn,
+        heroSeat: HERO_SEAT,
+        seatCount: SEAT_COUNT,
+        playerNames: playerNames.slice(),
+        botPresetNames: botPresetNames.slice()
+      };
     },
     getRosterForQuiz: function(){
       var roster = [];

@@ -106,8 +106,19 @@
      FORMULÁRIOS DE WAITLIST
      ===================================================== */
   function submitEmail(email){
-    // TODO: integrar com serviço real de e-mail/waitlist.
-    return Promise.resolve({ ok:true });
+    if(!window.HandpathDB){
+      return Promise.resolve({ ok:false });
+    }
+    return window.HandpathDB
+      .from('waitlist')
+      .insert({ email: email, lang: currentLang })
+      .then(function(res){
+        // 23505 = e-mail já está na waitlist (unique index em lower(email))
+        // — trata como sucesso pra não vazar pro usuário se já cadastrou.
+        if(!res.error || res.error.code === '23505') return { ok:true };
+        return { ok:false };
+      })
+      .catch(function(){ return { ok:false }; });
   }
 
   function initForms(){

@@ -110,6 +110,46 @@
     </div>
   </section>
 
+  <section class="hp-lobby" id="reportScreen" hidden>
+    <div class="hp-lobby-card hp-report-card">
+      <div class="hp-logo">Hand<span>path</span></div>
+      <h1>Relatório da sessão</h1>
+      <p class="hp-lobby-sub">O que aconteceu na mesa que você acabou de deixar.</p>
+
+      <div class="hp-report-body" id="reportBody"></div>
+
+      <div class="hp-buyin-footer">
+        <button type="button" class="hp-btn hp-btn--raise" id="btnReportDone">Voltar ao lobby</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="hp-lobby" id="replayScreen" hidden>
+    <div class="hp-lobby-card hp-report-card">
+      <div class="hp-logo">Hand<span>path</span></div>
+      <h1 id="replayTitle">Replay</h1>
+
+      <div class="hp-replay-bar">
+        <span class="hp-replay-street" id="replayStreet"></span>
+        <span class="hp-replay-pot">Pot: <strong id="replayPot">0</strong></span>
+      </div>
+
+      <div class="hp-replay-board" id="replayBoard"></div>
+      <p class="hp-replay-action" id="replayAction"></p>
+      <div class="hp-replay-seats" id="replaySeats"></div>
+
+      <div class="hp-replay-controls">
+        <button type="button" class="hp-btn hp-btn--ghost" id="btnReplayPrev">← Anterior</button>
+        <span class="hp-replay-progress" id="replayProgress">0 / 0</span>
+        <button type="button" class="hp-btn hp-btn--ghost" id="btnReplayNext">Próxima →</button>
+      </div>
+
+      <div class="hp-buyin-footer">
+        <button type="button" class="hp-btn hp-btn--raise" id="btnReplayBack">Voltar ao relatório</button>
+      </div>
+    </div>
+  </section>
+
   <div class="hp-app" id="tableScreen" hidden>
 
     <header class="hp-header">
@@ -155,7 +195,9 @@
     </section>
 
     <section class="hp-next" id="nextHandBar" hidden>
-      <button type="button" class="hp-btn hp-btn--next" id="btnNextHand">Nova Mão</button>
+      <div class="hp-next-track"><div class="hp-next-fill" id="nextHandFill"></div></div>
+      <span class="hp-next-label">Próxima mão em <span id="nextHandSeconds">5</span>s</span>
+      <button type="button" class="hp-btn hp-btn--ghost" id="btnSkipNextHand">Pular</button>
     </section>
 
     <aside class="hp-log">
@@ -176,6 +218,7 @@
   <script src="../bots/paramBot.js"></script>
   <script src="../bots/callingStation.js"></script>
   <script src="script.js"></script>
+  <script src="report.js"></script>
   <script src="session.js"></script>
 </body>
 </html>

@@ -8,9 +8,34 @@
 
 ## Contexto
 
-Hoje a landing page (`handpath-landing/`, marketing + waitlist) e o app do
-jogo (sendo construído no Claude Code) são **dois projetos desconectados**.
-Este documento define como eles se conectam num fluxo único.
+Hoje a landing page (`landing/` no mesmo repo `handpath-landing_2/`,
+marketing) e o app do jogo (`trainer/`, mesmo repo) já são conectados por
+estarem juntos — este documento define o fluxo de navegação entre eles,
+que ainda não existe.
+
+## ⚠️ Mudança de decisão: não existe mais waitlist
+
+A landing tinha um formulário de captura de e-mail (waitlist) e uma seção
+"Fundadores" com urgência de vagas — isso **sai por completo**. Motivo do
+Arthur: confunde quem chega, e ninguém entra numa lista de espera pra um
+produto que parece novo sem contexto nenhum. Como a Fase 1 do trainer já
+tem login/signup real funcionando (Supabase, validado ponta a ponta), não
+tem motivo pra fingir "lista de espera" quando dá pra simplesmente deixar
+a pessoa criar conta na hora.
+
+O que isso muda em `landing/`:
+
+- **Remover** o formulário de e-mail do hero (`#heroForm`, `submitEmail()`
+  e toda a lógica associada) — isso não é mais um item pendente, é
+  trabalho que deixou de existir.
+- **Remover ou reformular** a seção "Fundadores" (`founders` em
+  `index.html`/`styles.css`) — hoje ela é 100% baseada em urgência de
+  vaga/lista, que não existe mais. Se sobrar algo dessa seção, vira só
+  mais um CTA de "crie sua conta grátis", sem mecânica de fila.
+- CTA principal ("Comece agora") passa a apontar direto pro fluxo de
+  login/signup real em `trainer/ui/`, não pra um formulário.
+- O quiz de diagnóstico continua igual, só que o resultado leva pro
+  signup em vez de pra uma lista de espera.
 
 ## Fluxo completo
 
@@ -41,8 +66,8 @@ entre:
 - **Calculadora de Equity** → ferramenta interativa separada do curso —
   usuário digita mãos/board e vê o percentual calculado na hora. Item de
   nav próprio, não escondido dentro do curso.
-  - *(Assumi que "equidade explicada e exemplificada" pedia os dois —
-    lição E calculadora. Se era só um dos dois, é só cortar o outro.)*
+  - _(Assumi que "equidade explicada e exemplificada" pedia os dois —
+    lição E calculadora. Se era só um dos dois, é só cortar o outro.)_
 - **Prática** → drills avulsos (fica mais robusto quando o item "curso
   amarrado à prática" do documento de retenção for implementado).
 - **Dicas** → conteúdo (pode nascer como placeholder simples agora — a
@@ -59,17 +84,17 @@ Restringir de verdade, não só visualmente — evita ter que reconstruir a
 lógica de gating depois quando a cobrança real entrar. Proposta inicial de
 mapeamento (ajustável):
 
-| Plano | Stakes liberadas |
-|---|---|
-| Free | Micro |
-| Starter | Micro + Baixa |
-| Pro | Micro + Baixa + Média |
-| Elite | Todas (inclui Alta) |
+| Plano   | Stakes liberadas      |
+| ------- | --------------------- |
+| Free    | Micro                 |
+| Starter | Micro + Baixa         |
+| Pro     | Micro + Baixa + Média |
+| Elite   | Todas (inclui Alta)   |
 
 Isso é **independente** do gating de bots por stake (já definido: Micro=
 Iniciante, Baixa/Média=Intermediário, Alta=Avançado) — são dois filtros
-diferentes, plano controla *onde* você pode jogar, stake controla *contra
-quem*.
+diferentes, plano controla _onde_ você pode jogar, stake controla _contra
+quem_.
 
 ⚠️ **Nota separada, não travar sem confirmar:** os planos originais
 (Free/Starter/Pro/Elite) foram desenhados lá na landing page pensando em

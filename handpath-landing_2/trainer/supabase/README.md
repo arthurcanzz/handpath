@@ -29,6 +29,16 @@ região Americas.
 - **`migrations/0003_stakes_revisao.sql`** — atualiza blinds/buy-in de
   Micro/Baixa/Média e adiciona a stake Alta, ver
   `handpath-ajustes-fase1-fase2.md`.
+- **`migrations/0005_session_summary.sql`** — coluna `summary jsonb` em
+  `sessions` + RPC `save_session_summary(session_id, summary)`, usada pelo
+  relatório pós-mesa da Fase 5. Ver "Persistência do histórico" abaixo.
+- **`migrations/0004_waitlist.sql`** — tabela `waitlist` (e-mail + idioma),
+  usada pela `landing/` (não pelo trainer). Reaproveita este mesmo projeto
+  Supabase em vez de um serviço novo — só INSERT é liberado pro client não
+  autenticado (`anon`), sem SELECT/UPDATE/DELETE, então a anon key não
+  expõe a lista de e-mails. Ver `landing/supabase-config.js` e
+  `landing/supabase-client.js` (cópias autocontidas deste config/client,
+  já que `landing/` é zipada/implantada separadamente do trainer).
 
 ## Modelo de segurança
 
@@ -76,6 +86,36 @@ este schema.
     entre elas é o comprometimento financeiro/variância, não a
     dificuldade do bot (confirmado com o Arthur).
 
+## Persistência do histórico (Fase 5) — híbrida
+
+Decidido com o Arthur quando a Fase 5 foi implementada:
+
+- **As mãos completas** (cartas de todos, ações, resultado) ficam **só em
+  memória do browser**, durante a sessão. É de lá que o relatório pós-mesa
+  e o replay são montados — os dois compartilham a mesma base de dados, não
+  são features separadas (decisão travada desde antes).
+- **Só um resumo agregado por sessão** vai pro banco (coluna `summary` em
+  `sessions`, escrita por `save_session_summary`): nº de mãos, net, BB/100,
+  VPIP/PFR, contagem de ações, quantas mãos foram por kicker/azar. ~270
+  bytes por sessão.
+
+Por que não guardar tudo: o relatório e o replay são consumidos na mesma
+sessão em que foram jogados, então o banco não é necessário pra eles. Já o
+**rating/ELO de habilidade e a detecção de vazamento recorrente**
+(`handpath-retencao-monetizacao-realismo.md`) precisam comparar sessões ao
+longo do tempo — guardar o agregado desde já constrói essa base histórica
+sem carregar uma tabela de mãos completa no free tier de 500MB.
+
+Custo aceito: fechar a aba perde o detalhe mão a mão daquela sessão. Se um
+dia o histórico completo precisar ser persistido, o registro de mão em
+`../ui/script.js` já tem o formato pra ir pro banco verbatim, sem remodelar.
+
+**`save_session_summary` é uma RPC separada de propósito** — `cash_out` é a
+função do caminho de dinheiro, e adicionar um parâmetro nela exigiria
+`drop function` + recriar. A RPC nova só escreve a coluna de resumo e não
+toca em bankroll, status nem `cashout_amount`. Falha ao salvar o resumo não
+quebra nada: o relatório vem da memória de qualquer jeito.
+
 ## Ainda não decidido / não feito
 
 - Ping anti-pause do projeto free (pausa após 7 dias sem requisição) —
@@ -86,10 +126,5 @@ este schema.
   funcionando (Google OAuth já configurado no Google Cloud Console + painel
   Supabase), fluxo completo buy-in → jogar → "Sair da mesa" → persistência
   de saldo também validado manualmente.
-- **Decisão travada, não construir ainda:** histórico completo de mãos
-  (cartas de todos, ações, resultado de cada mão) + replay pós-mesa. Vai
-  reusar a mesma base de dados que a Fase 5 (relatório pós-mesa) precisa —
-  não é uma tabela/feature separada. Só entra junto da Fase 4/5, depois que
-  as rodadas automáticas (sem botão "Nova Mão") estiverem prontas — decisão
-  explícita do Arthur em `handpath-ajustes-fase1-fase2.md`, pra não abrir
-  essa frente de schema fora de ordem.
+- A coluna `summary` ainda não é **lida** por nada — ela existe pra
+  alimentar rating/ELO e detecção de vazamento quando a Fase 6 entrar.
