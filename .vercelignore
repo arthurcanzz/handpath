@@ -1,0 +1,5 @@
+# Sem build step: todo arquivo do repo vira URL publica.
+# Docs de planejamento e SQL ficam fora do deploy.
+*.md
+handpath-landing_2/trainer/supabase/migrations
+handpath-landing_2/trainer/supabase/pending_migrations_combined.sql
