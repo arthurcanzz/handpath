@@ -1,0 +1,5 @@
+# Docs de planejamento e SQL: nao precisam ser servidos publicamente.
+# Sem build step, tudo que fica no repo vira URL publica.
+*.md
+trainer/supabase/migrations
+trainer/supabase/pending_migrations_combined.sql
